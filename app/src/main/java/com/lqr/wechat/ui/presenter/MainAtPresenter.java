@@ -18,6 +18,8 @@ public class MainAtPresenter extends BasePresenter<IMainAtView> {
 
     public MainAtPresenter(BaseActivity context) {
         super(context);
+        LogUtils.v(">>>>>>>>>>>>>>>token:" + UserCache.getToken()
+                + ", id:" + UserCache.getId() + ", phone:" + UserCache.getPhone());
         connect(UserCache.getToken());
         //同步所有用户信息
         DBManager.getInstance().getAllUserInfo();
