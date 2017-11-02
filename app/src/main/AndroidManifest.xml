@@ -311,5 +311,12 @@
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:exported="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+
+        <!-- netty service-->
+        <service android:name="com.lqr.wechat.netty.service.Session" >
+            <intent-filter>
+                <action android:name="com.lqr.wechat.netty.service.session" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>
