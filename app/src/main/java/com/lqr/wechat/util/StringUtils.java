@@ -1,5 +1,6 @@
 package com.lqr.wechat.util;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -69,4 +70,8 @@ public class StringUtils {
         return sb.toString();
     }
 
+    public static String getCurrentStringDate() {
+        Date date = new Date();
+        return date.getTime() + "";
+    }
 }

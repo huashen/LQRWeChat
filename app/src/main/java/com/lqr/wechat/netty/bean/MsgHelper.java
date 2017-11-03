@@ -87,4 +87,66 @@ public class MsgHelper {
                 .setMessageType(Msg.MessageType.CLIENT_REQUEST).build();
         return m;
     }
+
+    /**
+     * 聊天消息
+     *
+     * @param fromId
+     * @param toId
+     * @param content
+     * @param token
+     * @param date
+     * @param contentType
+     * @return
+     */
+    public static Message newUUChatMessage(String uuid, int fromId, int toId,
+                                           String content, String token, boolean transfer, String date,
+                                           int id, int contentType, String fileGroupName, String path,
+                                           int status) {
+        Msg.ChatMessage chatMessage = Msg.ChatMessage.newBuilder()
+                .setContent(content).setFromId(fromId).setToId(toId)
+                .setMsgType(ChatMessage.MSG_TYPE_UU).setToken(token)
+                .setChatMessageId(id).setDate(date).setTransfer(transfer)
+                .setFileGroupName(fileGroupName).setFilePath(path)
+                .setStatus(status).setUuid(uuid).setContentType(contentType)
+                .build();
+
+        Msg.Message.Builder b = Msg.Message.newBuilder();
+        Msg.Message m = b.setChatMessage(chatMessage)
+                .setMessageType(Msg.MessageType.CHAT_MESSAGE).build();
+        return m;
+    }
+
+    /**
+     *
+     * @param fromId
+     * @param chatGroupId
+     * @param content
+     * @param token
+     * @param transfer
+     * @param date
+     * @param id
+     * @param contentType
+     * @param fileGroupName
+     * @param path
+     * @return
+     */
+    public static Message newUCGChatMessage(String uuid, int fromId,
+                                            int chatGroupId, String content, String token, boolean transfer,
+                                            String date, int id, int contentType, String fileGroupName,
+                                            String path, int status) {
+        Msg.ChatMessage chatMessage = Msg.ChatMessage.newBuilder()
+                .setContent(content).setFromId(fromId)
+                .setChatGroupId(chatGroupId)
+                .setMsgType(ChatMessage.MSG_TYPE_UCG).setToken(token)
+                .setChatMessageId(id).setDate(date).setTransfer(transfer)
+                .setFileGroupName(fileGroupName).setFilePath(path)
+                .setUuid(uuid).setStatus(status).setContentType(contentType)
+                .build();
+
+        Msg.Message.Builder b = Msg.Message.newBuilder();
+        Msg.Message m = b.setChatMessage(chatMessage)
+                .setMessageType(Msg.MessageType.CHAT_MESSAGE).build();
+        return m;
+    }
 }

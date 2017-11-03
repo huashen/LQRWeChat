@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LQRWeChat</string>
+    <string name="app_name">龙信</string>
 
     <string name="error_code">异常码：</string>
     <string name="please_check_net">请检查网络</string>

@@ -6,11 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
 
 import com.lqr.wechat.constant.Constants;
 import com.lqr.wechat.model.Friends;
 import com.lqr.wechat.model.User;
+import com.lqr.wechat.model.cache.CacheManager;
+import com.lqr.wechat.netty.bean.ChatMessage;
 import com.lqr.wechat.netty.bean.ClientRequestMessage;
 import com.lqr.wechat.netty.bean.Msg;
 import com.lqr.wechat.netty.bean.MsgHelper;
@@ -19,6 +22,7 @@ import com.lqr.wechat.netty.handler.JsonDataHandler;
 import com.lqr.wechat.netty.handler.ListMessageHandler;
 import com.lqr.wechat.netty.handler.NettyClientHandler;
 import com.lqr.wechat.util.BeepManager;
+import com.lqr.wechat.util.BroadcastHelper;
 import com.lqr.wechat.util.NetWorkUtil;
 
 import java.util.List;
@@ -38,6 +42,8 @@ import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
+import com.lqr.wechat.SessionService;
+import com.lqr.wechat.util.StringUtils;
 
 /**
  * Created by longhuasshen on 17/11/2.
@@ -140,20 +146,20 @@ public class Session extends Service {
         this.serverIp = "123.57.88.238";
         this.serverPort = 8888;
 
-//        nettyClientHandler = new NettyClientHandler(Session.this);
-//        jsonDataHandler = new JsonDataHandler(Session.this);
-//        listMessageHandler = new ListMessageHandler(Session.this);
-//        fileHandler = new FileHandler(Session.this);
-//
-//        this.user = (User) CacheManager.readObject(this,
-//                Constants.CACHE_CURRENT_USER);
-//        this.token = (String) CacheManager.readObject(this,
-//                Constants.CACHE_CURRENT_USER_TOKEN);
-//        if (user != null && token != null) {
-//            beepManager = new BeepManager(this);
-//            // 启动通讯服务
-//            connect();
-//        }
+        nettyClientHandler = new NettyClientHandler(Session.this);
+        jsonDataHandler = new JsonDataHandler(Session.this);
+        listMessageHandler = new ListMessageHandler(Session.this);
+        fileHandler = new FileHandler(Session.this);
+
+        this.user = (User) CacheManager.readObject(this,
+                Constants.CACHE_CURRENT_USER);
+        this.token = (String) CacheManager.readObject(this,
+                Constants.CACHE_CURRENT_USER_TOKEN);
+        if (user != null && token != null) {
+            beepManager = new BeepManager(this);
+            // 启动通讯服务
+            connect();
+        }
         return Service.START_STICKY;
     }
 
@@ -168,85 +174,85 @@ public class Session extends Service {
         }
     }
 
-//    public class LocalBinder extends SessionService.Stub {
-//
-//        public Session getService() {
-//            return Session.this;
-//        }
-//
-//        @Override
-//        public void sendMessage(String uuid, int contentType, String message,
-//                                int toId, int msgType, String fileGroupName, String filePath)
-//                throws RemoteException {
-//            Message msg = null;
-//
-//            switch (msgType) {
-//                case ChatMessage.MSG_TYPE_UU:
-//                    msg = MsgHelper.newUUChatMessage(uuid, user.getId(), toId,
-//                            message, token, true,
-//                            StringUtils.getCurrentStringDate(), 0, contentType,
-//                            fileGroupName, filePath, ChatMessage.STATUS_SEND);
-//                    break;
-//                case ChatMessage.MSG_TYPE_UCG:
-//                    msg = MsgHelper.newUCGChatMessage(uuid, user.getId(), toId,
-//                            message, token, true,
-//                            StringUtils.getCurrentStringDate(), 0, contentType,
-//                            fileGroupName, filePath, ChatMessage.STATUS_SEND);
-//                    break;
-//                case ChatMessage.MSG_TYPE_UDG:
-//                    msg = MsgHelper.newUUChatMessage(uuid, user.getId(), toId,
-//                            message, token, true,
-//                            StringUtils.getCurrentStringDate(), 0, contentType,
-//                            fileGroupName, filePath, ChatMessage.STATUS_SEND);
-//                    break;
-//            }
-//            socketChannel.writeAndFlush(msg);
-//
-//            BroadcastHelper.onSendChatMessage(Session.this);
-//        }
-//
-//        @Override
-//        public void getFriendList() throws RemoteException {
-//            Message msg = MsgHelper.newClientRequestMessage(
-//                    ClientRequestMessage.FRIEND_LIST, user.getId(), token, "");
-//            socketChannel.writeAndFlush(msg);
-//        }
-//
-//        @Override
-//        public void getMessageList(int fromMessageId) throws RemoteException {
-//            Message msg1 = MsgHelper.newClientRequestMessage(
-//                    ClientRequestMessage.CHAT_MESSAGE_LIST, user.getId(),
-//                    token, fromMessageId + "");
-//
-//            socketChannel.writeAndFlush(msg1);
-//        }
-//
-//        @Override
-//        public int getUserId() throws RemoteException {
-//
-//            return user.getId();
-//        }
-//
-//        @Override
-//        public String getUserName() throws RemoteException {
-//            return user.getName();
-//        }
-//
-//        @Override
-//        public void getFriendGroupsList() throws RemoteException {
-//            Message msg = MsgHelper.newClientRequestMessage(
-//                    ClientRequestMessage.FRIEND_GROUP_LIST, user.getId(),
-//                    token, "");
-//            socketChannel.writeAndFlush(msg);
-//        }
-//
-//        @Override
-//        public String getToken() throws RemoteException {
-//            return token;
-//        }
-//
-//        @Override
-//        public void sendAttachment(long id) throws RemoteException {
+    public class LocalBinder extends SessionService.Stub {
+
+        public Session getService() {
+            return Session.this;
+        }
+
+        @Override
+        public void sendMessage(String uuid, int contentType, String message,
+                                int toId, int msgType, String fileGroupName, String filePath)
+                throws RemoteException {
+            Msg.Message msg = null;
+
+            switch (msgType) {
+                case ChatMessage.MSG_TYPE_UU:
+                    msg = MsgHelper.newUUChatMessage(uuid, user.getId(), toId,
+                            message, token, true,
+                            StringUtils.getCurrentStringDate(), 0, contentType,
+                            fileGroupName, filePath, ChatMessage.STATUS_SEND);
+                    break;
+                case ChatMessage.MSG_TYPE_UCG:
+                    msg = MsgHelper.newUCGChatMessage(uuid, user.getId(), toId,
+                            message, token, true,
+                            StringUtils.getCurrentStringDate(), 0, contentType,
+                            fileGroupName, filePath, ChatMessage.STATUS_SEND);
+                    break;
+                case ChatMessage.MSG_TYPE_UDG:
+                    msg = MsgHelper.newUUChatMessage(uuid, user.getId(), toId,
+                            message, token, true,
+                            StringUtils.getCurrentStringDate(), 0, contentType,
+                            fileGroupName, filePath, ChatMessage.STATUS_SEND);
+                    break;
+            }
+            socketChannel.writeAndFlush(msg);
+
+            BroadcastHelper.onSendChatMessage(Session.this);
+        }
+
+        @Override
+        public void getFriendList() throws RemoteException {
+            Msg.Message msg = MsgHelper.newClientRequestMessage(
+                    ClientRequestMessage.FRIEND_LIST, user.getId(), token, "");
+            socketChannel.writeAndFlush(msg);
+        }
+
+        @Override
+        public void getMessageList(int fromMessageId) throws RemoteException {
+            Msg.Message message = MsgHelper.newClientRequestMessage(
+                    ClientRequestMessage.CHAT_MESSAGE_LIST, user.getId(),
+                    token, fromMessageId + "");
+
+            socketChannel.writeAndFlush(message);
+        }
+
+        @Override
+        public int getUserId() throws RemoteException {
+
+            return user.getId();
+        }
+
+        @Override
+        public String getUserName() throws RemoteException {
+            return user.getName();
+        }
+
+        @Override
+        public void getFriendGroupsList() throws RemoteException {
+            Msg.Message msg = MsgHelper.newClientRequestMessage(
+                    ClientRequestMessage.FRIEND_GROUP_LIST, user.getId(),
+                    token, "");
+            socketChannel.writeAndFlush(msg);
+        }
+
+        @Override
+        public String getToken() throws RemoteException {
+            return token;
+        }
+
+        @Override
+        public void sendAttachment(long id) throws RemoteException {
 //            Attachment a = DBHelper.getgetInstance(Session.this).getAttachment(
 //                    id);
 //            if (a == null) {
@@ -254,60 +260,60 @@ public class Session extends Service {
 //            }
 //            Message msg = MsgHelper.newFileUpload(a, user.getId(), token);
 //            socketChannel.writeAndFlush(msg);
-//        }
-//
-//        @Override
-//        public void getTodoList(int fromMessageId) throws RemoteException {
-//            Message msg1 = MsgHelper.newClientRequestMessage(
-//                    ClientRequestMessage.TODO_LIST, user.getId(), token,
-//                    fromMessageId + "");
-//            socketChannel.writeAndFlush(msg1);
-//        }
-//
-//        @Override
-//        public void getChatGroupList() throws RemoteException {
-//            Message msg = MsgHelper.newClientRequestMessage(
-//                    ClientRequestMessage.CHAT_GROUP_LIST, user.getId(), token,
-//                    "");
-//            socketChannel.writeAndFlush(msg);
-//        }
-//
-//        @Override
-//        public void getDiscussionGroupList() throws RemoteException {
-//            Message msg = MsgHelper.newClientRequestMessage(
-//                    ClientRequestMessage.DISCUSSION_GROUP_LIST, user.getId(),
-//                    token, "");
-//            socketChannel.writeAndFlush(msg);
-//        }
-//
-//        @Override
-//        public void getChatGroupMemberList(int groupId) throws RemoteException {
-//            Message msg = MsgHelper.newClientRequestMessage(
-//                    ClientRequestMessage.CHAT_GROUP_MEMBER_LIST, user.getId(),
-//                    token, "" + groupId);
-//            socketChannel.writeAndFlush(msg);
-//
-//        }
-//
-//        @Override
-//        public void getDiscussionGroupMemberList(int dGroupId)
-//                throws RemoteException {
-//            Message msg = MsgHelper.newClientRequestMessage(
-//                    ClientRequestMessage.DISCUSSION_GROUP_MEMBER_LIST,
-//                    user.getId(), token, "" + dGroupId);
-//            socketChannel.writeAndFlush(msg);
-//
-//        }
-//
-//        @Override
-//        public void getRelateUser() throws RemoteException {
-//            Message msg = MsgHelper.newClientRequestMessage(
-//                    ClientRequestMessage.RELATE_USER_LIST, user.getId(), token,
-//                    "");
-//            socketChannel.writeAndFlush(msg);
-//        }
-//
-//    }
+        }
+
+        @Override
+        public void getTodoList(int fromMessageId) throws RemoteException {
+            Msg.Message msg1 = MsgHelper.newClientRequestMessage(
+                    ClientRequestMessage.TODO_LIST, user.getId(), token,
+                    fromMessageId + "");
+            socketChannel.writeAndFlush(msg1);
+        }
+
+        @Override
+        public void getChatGroupList() throws RemoteException {
+            Msg.Message msg = MsgHelper.newClientRequestMessage(
+                    ClientRequestMessage.CHAT_GROUP_LIST, user.getId(), token,
+                    "");
+            socketChannel.writeAndFlush(msg);
+        }
+
+        @Override
+        public void getDiscussionGroupList() throws RemoteException {
+            Msg.Message msg = MsgHelper.newClientRequestMessage(
+                    ClientRequestMessage.DISCUSSION_GROUP_LIST, user.getId(),
+                    token, "");
+            socketChannel.writeAndFlush(msg);
+        }
+
+        @Override
+        public void getChatGroupMemberList(int groupId) throws RemoteException {
+            Msg.Message msg = MsgHelper.newClientRequestMessage(
+                    ClientRequestMessage.CHAT_GROUP_MEMBER_LIST, user.getId(),
+                    token, "" + groupId);
+            socketChannel.writeAndFlush(msg);
+
+        }
+
+        @Override
+        public void getDiscussionGroupMemberList(int dGroupId)
+                throws RemoteException {
+            Msg.Message msg = MsgHelper.newClientRequestMessage(
+                    ClientRequestMessage.DISCUSSION_GROUP_MEMBER_LIST,
+                    user.getId(), token, "" + dGroupId);
+            socketChannel.writeAndFlush(msg);
+
+        }
+
+        @Override
+        public void getRelateUser() throws RemoteException {
+            Msg.Message msg = MsgHelper.newClientRequestMessage(
+                    ClientRequestMessage.RELATE_USER_LIST, user.getId(), token,
+                    "");
+            socketChannel.writeAndFlush(msg);
+        }
+
+    }
 
     /**
      * 利用netty连接远程服务端保持通讯

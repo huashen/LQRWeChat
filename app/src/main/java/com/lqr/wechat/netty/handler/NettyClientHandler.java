@@ -2,6 +2,7 @@ package com.lqr.wechat.netty.handler;
 
 
 import com.lqr.wechat.netty.bean.Msg;
+import com.lqr.wechat.netty.service.Session;
 import com.lqr.wechat.util.LogUtils;
 
 import java.net.InetSocketAddress;
@@ -15,6 +16,11 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 public class NettyClientHandler extends SimpleChannelInboundHandler<Msg.Message> {
 
+    private Session session;
+
+    public NettyClientHandler(Session session) {
+        this.session = session;
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Msg.Message message) throws Exception {

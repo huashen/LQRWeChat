@@ -1,5 +1,7 @@
 package com.lqr.wechat.netty.handler;
 
+import com.lqr.wechat.netty.service.Session;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -8,6 +10,12 @@ import io.netty.channel.SimpleChannelInboundHandler;
  */
 
 public class ListMessageHandler extends SimpleChannelInboundHandler {
+
+    private Session session;
+
+    public ListMessageHandler(Session session) {
+        this.session = session;
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
