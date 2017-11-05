@@ -55,7 +55,7 @@ public class AppConst {
         public static final String MY_JIAN_SHU = "http://www.jianshu.com/u/f9de259236a3";
         public static final String MY_CSDN = "http://blog.csdn.net/csdn_lqr";
         public static final String MY_OSCHINA = "https://git.oschina.net/CSDNLQR";
-        public static final String MY_GITHUB = "https://github.com/GitLqr";
+        public static final String MY_GITHUB = "https://github.com/huashen";
     }
 
     public static final class QrCodeCommon {

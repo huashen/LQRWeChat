@@ -1,10 +1,17 @@
 package com.lqr.wechat.ui.activity;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Color;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageButton;
@@ -13,8 +20,11 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.lqr.wechat.R;
+import com.lqr.wechat.SessionService;
 import com.lqr.wechat.app.AppConst;
+import com.lqr.wechat.constant.Constants;
 import com.lqr.wechat.manager.BroadcastManager;
+import com.lqr.wechat.netty.service.Session;
 import com.lqr.wechat.ui.adapter.CommonFragmentPagerAdapter;
 import com.lqr.wechat.ui.base.BaseActivity;
 import com.lqr.wechat.ui.base.BaseFragment;
@@ -317,5 +327,36 @@ public class MainActivity extends BaseActivity<IMainAtView, MainAtPresenter> imp
     @Override
     public TextView getTvMessageCount() {
         return mTvMessageCount;
+    }
+
+
+    private SessionService mSessionService;
+
+    private ServiceConnection connection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mSessionService = SessionService.Stub.asInterface(service);
+            Log.v("org.weishe.weichat", "获取  SessionService！");
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mSessionService = null;
+        }
+
+    };
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+//        Intent intent = new Intent(Constants.INTENT_SERVICE_SESSION);
+//        intent.setAction(Constants.INTENT_SERVICE_SESSION);
+//        intent.setPackage("org.weishe.weichat");
+//        this.bindService(intent, connection, Context.BIND_AUTO_CREATE);
+
+        Intent intentOne = new Intent(this, Session.class);
+        startService(intentOne);
     }
 }

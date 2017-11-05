@@ -9,7 +9,9 @@ import android.widget.RelativeLayout;
 
 import com.jaeger.library.StatusBarUtil;
 import com.lqr.wechat.R;
+import com.lqr.wechat.constant.Constants;
 import com.lqr.wechat.model.cache.UserCache;
+import com.lqr.wechat.netty.service.Session;
 import com.lqr.wechat.ui.base.BaseActivity;
 import com.lqr.wechat.ui.base.BasePresenter;
 import com.lqr.wechat.util.UIUtils;
@@ -55,6 +57,11 @@ public class SplashActivity extends BaseActivity {
             Intent intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             jumpToActivity(intent);
+
+//            //连续启动Service
+//            Intent intentOne = new Intent(this, Session.class);
+//            startService(intentOne);
+
             finish();
         }
     }

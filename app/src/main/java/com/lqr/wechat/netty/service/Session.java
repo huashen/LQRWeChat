@@ -23,6 +23,7 @@ import com.lqr.wechat.netty.handler.ListMessageHandler;
 import com.lqr.wechat.netty.handler.NettyClientHandler;
 import com.lqr.wechat.util.BeepManager;
 import com.lqr.wechat.util.BroadcastHelper;
+import com.lqr.wechat.util.LogUtils;
 import com.lqr.wechat.util.NetWorkUtil;
 
 import java.util.List;
@@ -137,13 +138,13 @@ public class Session extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-//        return new LocalBinder();
-        return null;
+        return new LocalBinder();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        this.serverIp = "123.57.88.238";
+        Log.i("Kathy", "onStartCommand - startId = " + startId + ", Thread ID = " + Thread.currentThread().getId());
+        this.serverIp = "10.0.2.2";
         this.serverPort = 8888;
 
         nettyClientHandler = new NettyClientHandler(Session.this);
@@ -151,15 +152,16 @@ public class Session extends Service {
         listMessageHandler = new ListMessageHandler(Session.this);
         fileHandler = new FileHandler(Session.this);
 
-        this.user = (User) CacheManager.readObject(this,
-                Constants.CACHE_CURRENT_USER);
-        this.token = (String) CacheManager.readObject(this,
-                Constants.CACHE_CURRENT_USER_TOKEN);
-        if (user != null && token != null) {
-            beepManager = new BeepManager(this);
-            // 启动通讯服务
-            connect();
-        }
+//        this.user = (User) CacheManager.readObject(this,
+//                Constants.CACHE_CURRENT_USER);
+//        this.token = (String) CacheManager.readObject(this,
+//                Constants.CACHE_CURRENT_USER_TOKEN);
+//        if (user != null && token != null) {
+//            beepManager = new BeepManager(this);
+//            // 启动通讯服务
+//            connect();
+//        }
+        connect();
         return Service.START_STICKY;
     }
 
@@ -319,6 +321,7 @@ public class Session extends Service {
      * 利用netty连接远程服务端保持通讯
      */
     private boolean connect() {
+        LogUtils.v(">>>>>>>>>>>>>>>>>>>>connect", "ip:" + serverIp + ", port:" + serverPort);
         if (firStart) {
             firStart = false;
         }
@@ -359,6 +362,7 @@ public class Session extends Service {
 
             }
         });
+        LogUtils.v(">>>>>>>>>>>>>>>>>>>>bootstrap" + bootstrap);
 
         try {
             ChannelFuture future = bootstrap.connect(serverIp, serverPort)
@@ -376,7 +380,7 @@ public class Session extends Service {
             // future.channel().closeFuture().sync();
         } catch (Exception e) {
             Log.v("org.weishe.weichat", "netty 通讯服务启动失败!");
-            Log.v("org.weishe.weichat", e.getMessage());
+//            Log.v("org.weishe.weichat", e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -453,8 +457,8 @@ public class Session extends Service {
         Msg.Message loginMsg = Msg.Message
                 .newBuilder()
                 .setClientLoginMessage(
-                        Msg.ClientLoginMessage.newBuilder().setToken(token)
-                                .setUserId(this.user.getId()).build())
+                        Msg.ClientLoginMessage.newBuilder().setToken("123456")
+                                .setUserId(1).build())
                 .setMessageType(Msg.MessageType.CLIENT_LOGIN).build();
         socketChannel.writeAndFlush(loginMsg);
     }

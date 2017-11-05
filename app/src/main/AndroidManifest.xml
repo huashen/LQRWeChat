@@ -315,7 +315,7 @@
         <!-- netty service-->
         <service android:name="com.lqr.wechat.netty.service.Session" >
             <intent-filter>
-                <action android:name="com.lqr.wechat.netty.service.session" />
+                <action android:name="org.weishe.weichat.session" />
             </intent-filter>
         </service>
     </application>
