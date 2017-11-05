@@ -10,6 +10,7 @@ import com.lqr.wechat.util.LogUtils;
 
 import java.net.InetSocketAddress;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -18,6 +19,7 @@ import io.netty.handler.timeout.IdleStateEvent;
  * Created by longhuasshen on 17/10/29.
  */
 
+@ChannelHandler.Sharable
 public class NettyClientHandler extends SimpleChannelInboundHandler<Msg.Message> {
 
     private int pingTimes = 0;

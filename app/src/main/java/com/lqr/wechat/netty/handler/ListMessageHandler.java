@@ -2,13 +2,14 @@ package com.lqr.wechat.netty.handler;
 
 import com.lqr.wechat.netty.service.Session;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 /**
  * Created by longhuasshen on 17/11/2.
  */
-
+@ChannelHandler.Sharable
 public class ListMessageHandler extends SimpleChannelInboundHandler {
 
     private Session session;
