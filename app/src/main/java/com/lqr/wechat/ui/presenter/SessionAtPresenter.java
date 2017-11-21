@@ -1,9 +1,15 @@
 package com.lqr.wechat.ui.presenter;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.drawable.AnimationDrawable;
 import android.net.Uri;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -11,11 +17,14 @@ import android.widget.TextView;
 import com.lqr.audio.AudioPlayManager;
 import com.lqr.audio.IAudioPlayListener;
 import com.lqr.wechat.R;
+import com.lqr.wechat.SessionService;
+import com.lqr.wechat.constant.Constants;
 import com.lqr.wechat.db.DBManager;
 import com.lqr.wechat.db.model.GroupMember;
 import com.lqr.wechat.model.cache.UserCache;
 import com.lqr.wechat.model.data.LocationData;
 import com.lqr.wechat.model.message.RedPacketMessage;
+import com.lqr.wechat.netty.bean.ChatMessage;
 import com.lqr.wechat.ui.activity.SessionActivity;
 import com.lqr.wechat.ui.activity.ShowBigImageActivity;
 import com.lqr.wechat.ui.adapter.SessionAdapter;
@@ -27,6 +36,7 @@ import com.lqr.wechat.util.LogUtils;
 import com.lqr.wechat.util.MediaFileUtils;
 import com.lqr.wechat.util.RedPacketUtil;
 import com.lqr.wechat.util.UIUtils;
+import com.lqr.wechat.util.UUIDUtil;
 import com.lqr.wechat.widget.CustomDialog;
 import com.yunzhanghu.redpacketsdk.RPSendPacketCallback;
 import com.yunzhanghu.redpacketsdk.bean.RedPacketInfo;
@@ -34,6 +44,7 @@ import com.yunzhanghu.redpacketsdk.constant.RPConstant;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import io.rong.imlib.IRongCallback;
@@ -70,6 +81,13 @@ public class SessionAtPresenter extends BaseFragmentPresenter<ISessionAtView> {
         super(context);
         mSessionId = sessionId;
         mConversationType = conversationType;
+
+        Intent i = new Intent(Constants.INTENT_SERVICE_SESSION);
+
+        i.setAction(Constants.INTENT_SERVICE_SESSION);
+
+        i.setPackage("com.lqr.wechat");
+        context.bindService(i, connection, Context.BIND_ADJUST_WITH_ACTIVITY);
     }
 
     public void loadMessage() {
@@ -297,11 +315,49 @@ public class SessionAtPresenter extends BaseFragmentPresenter<ISessionAtView> {
     }
 
     public void sendTextMsg() {
-        sendTextMsg(getView().getEtContent().getText().toString());
+        LogUtils.v(">>>>>>>>>>>>>>>sendTextMsg", "sendTextMsg");
+        String content = getView().getEtContent().getText().toString();
+        // 空消息不发送，不包括空格。
+        if (content == null || content.isEmpty()) {
+            return;
+        }
+
+        sendTextMsg(content);
         getView().getEtContent().setText("");
     }
 
     public void sendTextMsg(String content) {
+        LogUtils.v(">>>>>>>>>sendTextMsg", content);
+
+        int chatType = ChatMessage.MSG_TYPE_UU;
+
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setContent(content);
+
+        chatMessage.setFromId(1);
+        chatMessage.setDate(new Date());
+        chatMessage.setType(ChatMessage.TYPE_SEND);
+        chatMessage.setContentType(ChatMessage.CONTENT_TYPE_NORMAL);
+        int toId = 0;
+
+
+        chatMessage.setMsgType(ChatMessage.MSG_TYPE_UU);
+        chatMessage.setToId(2);
+        toId = 2;
+
+        chatMessage.setWhoId(2);
+        chatMessage.setChecked(true);
+        String uuid = UUIDUtil.uuid();
+        chatMessage.setUuid(uuid);
+
+        try {
+
+            mSessionService.sendMessage(uuid, ChatMessage.CONTENT_TYPE_NORMAL,
+                    content, toId, chatType, "", "");
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
         RongIMClient.getInstance().sendMessage(mConversationType, mSessionId, TextMessage.obtain(content), mPushCotent, mPushData,
                 new RongIMClient.SendMessageCallback() {// 发送消息的回调
                     @Override
@@ -613,5 +669,33 @@ public class SessionAtPresenter extends BaseFragmentPresenter<ISessionAtView> {
         mData.remove(position);
         mData.add(Message.obtain(mSessionId, mConversationType, recallNotificationMessage));
         mAdapter.notifyDataSetChangedWrapper();
+    }
+
+    private SessionService mSessionService;
+
+    private ServiceConnection connection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mSessionService = SessionService.Stub.asInterface(service);
+            Log.v("org.weishe.weichat", "获取  SessionService！");
+
+            try {
+                mSessionService.getFriendList();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mSessionService = null;
+        }
+
+    };
+
+    public SessionService getSessionService() {
+        return mSessionService;
     }
 }

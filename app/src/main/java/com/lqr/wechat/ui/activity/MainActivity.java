@@ -106,6 +106,9 @@ public class MainActivity extends BaseActivity<IMainAtView, MainAtPresenter> imp
     @Override
     public void init() {
         registerBR();
+
+        Intent intentOne = new Intent(this, Session.class);
+        startService(intentOne);
     }
 
     @Override
@@ -339,6 +342,12 @@ public class MainActivity extends BaseActivity<IMainAtView, MainAtPresenter> imp
             mSessionService = SessionService.Stub.asInterface(service);
             Log.v("org.weishe.weichat", "获取  SessionService！");
 
+            try {
+                mSessionService.getFriendList();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+
         }
 
         @Override
@@ -348,15 +357,19 @@ public class MainActivity extends BaseActivity<IMainAtView, MainAtPresenter> imp
 
     };
 
+    public SessionService getSessionService() {
+        return mSessionService;
+    }
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        Intent intent = new Intent(Constants.INTENT_SERVICE_SESSION);
-//        intent.setAction(Constants.INTENT_SERVICE_SESSION);
-//        intent.setPackage("org.weishe.weichat");
-//        this.bindService(intent, connection, Context.BIND_AUTO_CREATE);
+        Intent intent = new Intent(Constants.INTENT_SERVICE_SESSION);
+        intent.setAction(Constants.INTENT_SERVICE_SESSION);
+        intent.setPackage("com.lqr.wechat");
+        this.bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
-        Intent intentOne = new Intent(this, Session.class);
-        startService(intentOne);
+//        Intent intentOne = new Intent(this, Session.class);
+//        startService(intentOne);
     }
 }

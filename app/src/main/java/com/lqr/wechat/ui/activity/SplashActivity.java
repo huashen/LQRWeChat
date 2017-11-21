@@ -53,6 +53,11 @@ public class SplashActivity extends BaseActivity {
                         Manifest.permission.WRITE_SETTINGS
                 )
                 .request();
+
+        Intent intent1 = new Intent(this, MainActivity.class);
+        intent1.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        jumpToActivity(intent1);
+        finish();
         if (!TextUtils.isEmpty(UserCache.getToken())) {
             Intent intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);

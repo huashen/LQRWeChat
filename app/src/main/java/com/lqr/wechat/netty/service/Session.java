@@ -190,8 +190,8 @@ public class Session extends Service {
 
             switch (msgType) {
                 case ChatMessage.MSG_TYPE_UU:
-                    msg = MsgHelper.newUUChatMessage(uuid, user.getId(), toId,
-                            message, token, true,
+                    msg = MsgHelper.newUUChatMessage(uuid, 1, toId,
+                            message, "123456", true,
                             StringUtils.getCurrentStringDate(), 0, contentType,
                             fileGroupName, filePath, ChatMessage.STATUS_SEND);
                     break;
@@ -216,7 +216,7 @@ public class Session extends Service {
         @Override
         public void getFriendList() throws RemoteException {
             Msg.Message msg = MsgHelper.newClientRequestMessage(
-                    ClientRequestMessage.FRIEND_LIST, user.getId(), token, "");
+                    ClientRequestMessage.FRIEND_LIST, 1, "123456", "");
             socketChannel.writeAndFlush(msg);
         }
 

@@ -70,6 +70,8 @@ public class ContactsFgPresenter extends BasePresenter<IContactsFgView> {
 
                     String str = "";
                     //得到当前字母
+                    item.setDisplayNameSpelling("longmao");
+                    LogUtils.v(">>>>>>>>>>item.getDisplayNameSpelling()", item.getDisplayNameSpelling());
                     String currentLetter = item.getDisplayNameSpelling().charAt(0) + "";
                     if (position == 0) {
                         str = currentLetter;
@@ -84,7 +86,7 @@ public class ContactsFgPresenter extends BasePresenter<IContactsFgView> {
                     int nextIndex = position + 1;
                     if (nextIndex < mData.size() - 1) {
                         //得到下一个字母
-                        String nextLetter = mData.get(nextIndex).getDisplayNameSpelling().charAt(0) + "";
+                        String nextLetter = "longmao".charAt(0) + "";
                         //如果和下一个字母的首字母不同则隐藏下划线
                         if (!nextLetter.equalsIgnoreCase(currentLetter)) {
                             helper.setViewVisibility(R.id.vLine, View.INVISIBLE);
