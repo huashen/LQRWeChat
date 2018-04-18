@@ -91,6 +91,7 @@ public class SessionAtPresenter extends BaseFragmentPresenter<ISessionAtView> {
     }
 
     public void loadMessage() {
+        LogUtils.v(">>>>>>>>>>>>>>>>>>>>>>>loadMessage");
         loadData();
         setAdapter();
     }
@@ -108,7 +109,6 @@ public class SessionAtPresenter extends BaseFragmentPresenter<ISessionAtView> {
     public void receiveNewMessage(Message message) {
         mData.add(message);
         setAdapter();
-        RongIMClient.getInstance().clearMessagesUnreadStatus(mConversationType, mSessionId);
     }
 
     public void resetDraft() {
@@ -224,47 +224,47 @@ public class SessionAtPresenter extends BaseFragmentPresenter<ISessionAtView> {
                     tvReCall.setVisibility(View.GONE);
                 }
 
-                tvReCall.setOnClickListener(v -> RongIMClient.getInstance().recallMessage(message, "", new RongIMClient.ResultCallback<RecallNotificationMessage>() {
-                    @Override
-                    public void onSuccess(RecallNotificationMessage recallNotificationMessage) {
-                        UIUtils.postTaskSafely(() -> {
-                            recallMessageAndInsertMessage(recallNotificationMessage, position);
-                            mSessionMenuDialog.dismiss();
-                            mSessionMenuDialog = null;
-                            UIUtils.showToast(UIUtils.getString(R.string.recall_success));
-                        });
-                    }
-
-                    @Override
-                    public void onError(RongIMClient.ErrorCode errorCode) {
-                        UIUtils.postTaskSafely(() -> {
-                            mSessionMenuDialog.dismiss();
-                            mSessionMenuDialog = null;
-                            UIUtils.showToast(UIUtils.getString(R.string.recall_fail) + ":" + errorCode.getValue());
-                        });
-                    }
-                }));
-                tvDelete.setOnClickListener(v -> RongIMClient.getInstance().deleteMessages(new int[]{message.getMessageId()}, new RongIMClient.ResultCallback<Boolean>() {
-                    @Override
-                    public void onSuccess(Boolean aBoolean) {
-                        UIUtils.postTaskSafely(() -> {
-                            mSessionMenuDialog.dismiss();
-                            mSessionMenuDialog = null;
-                            mData.remove(position);
-                            mAdapter.notifyDataSetChangedWrapper();
-                            UIUtils.showToast(UIUtils.getString(R.string.delete_success));
-                        });
-                    }
-
-                    @Override
-                    public void onError(RongIMClient.ErrorCode errorCode) {
-                        UIUtils.postTaskSafely(() -> {
-                            mSessionMenuDialog.dismiss();
-                            mSessionMenuDialog = null;
-                            UIUtils.showToast(UIUtils.getString(R.string.delete_fail) + ":" + errorCode.getValue());
-                        });
-                    }
-                }));
+//                tvReCall.setOnClickListener(v -> RongIMClient.getInstance().recallMessage(message, "", new RongIMClient.ResultCallback<RecallNotificationMessage>() {
+//                    @Override
+//                    public void onSuccess(RecallNotificationMessage recallNotificationMessage) {
+//                        UIUtils.postTaskSafely(() -> {
+//                            recallMessageAndInsertMessage(recallNotificationMessage, position);
+//                            mSessionMenuDialog.dismiss();
+//                            mSessionMenuDialog = null;
+//                            UIUtils.showToast(UIUtils.getString(R.string.recall_success));
+//                        });
+//                    }
+//
+//                    @Override
+//                    public void onError(RongIMClient.ErrorCode errorCode) {
+//                        UIUtils.postTaskSafely(() -> {
+//                            mSessionMenuDialog.dismiss();
+//                            mSessionMenuDialog = null;
+//                            UIUtils.showToast(UIUtils.getString(R.string.recall_fail) + ":" + errorCode.getValue());
+//                        });
+//                    }
+//                }));
+//                tvDelete.setOnClickListener(v -> RongIMClient.getInstance().deleteMessages(new int[]{message.getMessageId()}, new RongIMClient.ResultCallback<Boolean>() {
+//                    @Override
+//                    public void onSuccess(Boolean aBoolean) {
+//                        UIUtils.postTaskSafely(() -> {
+//                            mSessionMenuDialog.dismiss();
+//                            mSessionMenuDialog = null;
+//                            mData.remove(position);
+//                            mAdapter.notifyDataSetChangedWrapper();
+//                            UIUtils.showToast(UIUtils.getString(R.string.delete_success));
+//                        });
+//                    }
+//
+//                    @Override
+//                    public void onError(RongIMClient.ErrorCode errorCode) {
+//                        UIUtils.postTaskSafely(() -> {
+//                            mSessionMenuDialog.dismiss();
+//                            mSessionMenuDialog = null;
+//                            UIUtils.showToast(UIUtils.getString(R.string.delete_fail) + ":" + errorCode.getValue());
+//                        });
+//                    }
+//                }));
                 mSessionMenuDialog.show();
                 return false;
             });
@@ -350,37 +350,59 @@ public class SessionAtPresenter extends BaseFragmentPresenter<ISessionAtView> {
         String uuid = UUIDUtil.uuid();
         chatMessage.setUuid(uuid);
 
+
         try {
 
             mSessionService.sendMessage(uuid, ChatMessage.CONTENT_TYPE_NORMAL,
                     content, toId, chatType, "", "");
+
+            Message message = new Message();
+            message.setUId(uuid);
+            message.setContent(TextMessage.obtain(content));
+            message.setConversationType(Conversation.ConversationType.PRIVATE);
+            message.setMessageDirection(Message.MessageDirection.SEND);
+            mAdapter.addLastItem(message);
+//            updateMessageStatusByMessageUId(message);
+            rvMoveToBottom();
         } catch (RemoteException e) {
             e.printStackTrace();
         }
 
-        RongIMClient.getInstance().sendMessage(mConversationType, mSessionId, TextMessage.obtain(content), mPushCotent, mPushData,
-                new RongIMClient.SendMessageCallback() {// 发送消息的回调
-                    @Override
-                    public void onError(Integer integer, RongIMClient.ErrorCode errorCode) {
-                        updateMessageStatus(integer);
-                    }
+//        RongIMClient.getInstance().sendMessage(mConversationType, mSessionId, TextMessage.obtain(content), mPushCotent, mPushData,
+//                new RongIMClient.SendMessageCallback() {// 发送消息的回调
+//                    @Override
+//                    public void onError(Integer integer, RongIMClient.ErrorCode errorCode) {
+//                        updateMessageStatus(integer);
+//                    }
+//
+//                    @Override
+//                    public void onSuccess(Integer integer) {
+//                        updateMessageStatus(integer);
+//                    }
+//                }, new RongIMClient.ResultCallback<Message>() {//消息存库的回调，可用于获取消息实体
+//                    @Override
+//                    public void onSuccess(Message message) {
+//                        mAdapter.addLastItem(message);
+//                        rvMoveToBottom();
+//                    }
+//
+//                    @Override
+//                    public void onError(RongIMClient.ErrorCode errorCode) {
+//
+//                    }
+//                });
+    }
 
-                    @Override
-                    public void onSuccess(Integer integer) {
-                        updateMessageStatus(integer);
-                    }
-                }, new RongIMClient.ResultCallback<Message>() {//消息存库的回调，可用于获取消息实体
-                    @Override
-                    public void onSuccess(Message message) {
-                        mAdapter.addLastItem(message);
-                        rvMoveToBottom();
-                    }
-
-                    @Override
-                    public void onError(RongIMClient.ErrorCode errorCode) {
-
-                    }
-                });
+    private void updateMessageStatusByMessageUId(Message message) {
+        for (int i = 0; i < mData.size(); i++) {
+            Message msg = mData.get(i);
+            if (msg.getUId().equals(message.getUId())) {
+                mData.remove(i);
+                mData.add(i, message);
+                mAdapter.notifyDataSetChangedWrapper();
+                break;
+            }
+        }
     }
 
     public void sendImgMsg(Uri imageFileThumbUri, Uri imageFileSourceUri) {
@@ -594,22 +616,24 @@ public class SessionAtPresenter extends BaseFragmentPresenter<ISessionAtView> {
             messageId = -1;
         }
 
-        RongIMClient.getInstance().getHistoryMessages(mConversationType, mSessionId, messageId, mMessageCount, new RongIMClient.ResultCallback<List<Message>>() {
-            @Override
-            public void onSuccess(List<Message> messages) {
-                getView().getRefreshLayout().endRefreshing();
-                if (messages == null || messages.size() == 0)
-                    getRemoteHistoryMessages();
-                else
-                    saveHistoryMsg(messages);
-            }
+        LogUtils.v(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>getLocalHistoryMessage<<<<<<<<<<<<<<<<<<<<<<<<<<");
 
-            @Override
-            public void onError(RongIMClient.ErrorCode errorCode) {
-                getView().getRefreshLayout().endRefreshing();
-                loadMessageError(errorCode);
-            }
-        });
+//        RongIMClient.getInstance().getHistoryMessages(mConversationType, mSessionId, messageId, mMessageCount, new RongIMClient.ResultCallback<List<Message>>() {
+//            @Override
+//            public void onSuccess(List<Message> messages) {
+//                getView().getRefreshLayout().endRefreshing();
+//                if (messages == null || messages.size() == 0)
+//                    getRemoteHistoryMessages();
+//                else
+//                    saveHistoryMsg(messages);
+//            }
+//
+//            @Override
+//            public void onError(RongIMClient.ErrorCode errorCode) {
+//                getView().getRefreshLayout().endRefreshing();
+//                loadMessageError(errorCode);
+//            }
+//        });
     }
 
     //单聊、群聊、讨论组、客服的历史消息从远端获取

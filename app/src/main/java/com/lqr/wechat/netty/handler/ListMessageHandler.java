@@ -43,6 +43,11 @@ public class ListMessageHandler extends SimpleChannelInboundHandler<List> {
     protected void channelRead0(ChannelHandlerContext ctx, List messages) throws Exception {
         if (messages != null && messages.size() > 0) {
             Object o = messages.get(0);
+            //聊天记录
+            if (o instanceof Msg.ChatMessage) {
+                onReceiveChatMessageList(messages);
+            }
+
             // 好友列表
             if (o instanceof Msg.Friends) {
                 onReceiveFriendsList(messages);
@@ -50,6 +55,14 @@ public class ListMessageHandler extends SimpleChannelInboundHandler<List> {
         }
 
         ReferenceCountUtil.release(messages);
+    }
+
+    private void onReceiveChatMessageList(List messages) {
+        //Todo 保存本地消息
+
+        LogUtils.v("========================>保存本地消息");
+
+        //发送广播
     }
 
 

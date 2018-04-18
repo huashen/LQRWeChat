@@ -23,6 +23,7 @@ import com.lqr.wechat.model.message.RedPacketMessage;
 import com.lqr.wechat.ui.activity.SessionActivity;
 import com.lqr.wechat.ui.activity.UserInfoActivity;
 import com.lqr.wechat.ui.presenter.SessionAtPresenter;
+import com.lqr.wechat.util.LogUtils;
 import com.lqr.wechat.util.MediaFileUtils;
 import com.lqr.wechat.util.TimeUtils;
 import com.lqr.wechat.util.UIUtils;
@@ -189,29 +190,30 @@ public class SessionAdapter extends LQRAdapterForRecyclerView<Message> {
 
     private void setOnClick(LQRViewHolderForRecyclerView helper, Message item, int position) {
         helper.getView(R.id.llError).setOnClickListener(v ->
-                RongIMClient.getInstance().deleteMessages(new int[]{item.getMessageId()}, new RongIMClient.ResultCallback<Boolean>() {
-                    @Override
-                    public void onSuccess(Boolean aBoolean) {
-                        mData.remove(position);
-                        mPresenter.setAdapter();
-                        MessageContent content = item.getContent();
-                        if (content instanceof TextMessage) {
-                            mPresenter.sendTextMsg(((TextMessage) content).getContent());
-                        } else if (content instanceof ImageMessage) {
-                            mPresenter.sendImgMsg(((ImageMessage) content).getThumUri(), ((ImageMessage) content).getLocalUri());
-                        } else if (content instanceof FileMessage) {
-                            mPresenter.sendFileMsg(new File(((FileMessage) content).getLocalPath().getPath()));
-                        } else if (content instanceof VoiceMessage) {
-                            VoiceMessage voiceMessage = (VoiceMessage) content;
-                            mPresenter.sendAudioFile(voiceMessage.getUri(), voiceMessage.getDuration());
-                        }
-                    }
-
-                    @Override
-                    public void onError(RongIMClient.ErrorCode errorCode) {
-
-                    }
-                })
+                        LogUtils.v(">>>>>>>>>>>>>setOnClick")
+//                RongIMClient.getInstance().deleteMessages(new int[]{item.getMessageId()}, new RongIMClient.ResultCallback<Boolean>() {
+//                    @Override
+//                    public void onSuccess(Boolean aBoolean) {
+//                        mData.remove(position);
+//                        mPresenter.setAdapter();
+//                        MessageContent content = item.getContent();
+//                        if (content instanceof TextMessage) {
+//                            mPresenter.sendTextMsg(((TextMessage) content).getContent());
+//                        } else if (content instanceof ImageMessage) {
+//                            mPresenter.sendImgMsg(((ImageMessage) content).getThumUri(), ((ImageMessage) content).getLocalUri());
+//                        } else if (content instanceof FileMessage) {
+//                            mPresenter.sendFileMsg(new File(((FileMessage) content).getLocalPath().getPath()));
+//                        } else if (content instanceof VoiceMessage) {
+//                            VoiceMessage voiceMessage = (VoiceMessage) content;
+//                            mPresenter.sendAudioFile(voiceMessage.getUri(), voiceMessage.getDuration());
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onError(RongIMClient.ErrorCode errorCode) {
+//
+//                    }
+//                })
         );
         helper.getView(R.id.ivAvatar).setOnClickListener(v -> {
             UserInfo userInfo = DBManager.getInstance().getUserInfo(item.getSenderUserId());

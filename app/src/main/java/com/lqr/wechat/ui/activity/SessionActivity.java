@@ -496,9 +496,9 @@ public class SessionActivity extends BaseFragmentActivity<ISessionAtView, Sessio
             public void onReceive(Context context, Intent intent) {
                 Message message = intent.getParcelableExtra("result");
                 if (message != null) {
-                    if (message.getTargetId().equals(mSessionId)) {
+//                    if (message.getTargetId().equals(mSessionId)) {
                         mPresenter.receiveNewMessage(message);
-                    }
+//                    }
                 }
             }
         });
