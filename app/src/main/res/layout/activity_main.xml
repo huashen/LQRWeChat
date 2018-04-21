@@ -369,6 +369,15 @@
                     android:text="@string/me"
                     android:textColor="@color/green0"
                     android:textSize="24px"/>
+
+                <EditText
+                    android:id="@+id/log"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="log:"
+                    android:minLines="20"
+                    android:scrollbars="vertical"
+                    android:visibility="gone"/>
             </com.zhy.autolayout.AutoRelativeLayout>
         </com.zhy.autolayout.AutoLinearLayout>
     </com.zhy.autolayout.AutoLinearLayout>

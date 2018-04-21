@@ -112,4 +112,5 @@ dependencies {
     compile files('libs/MobCommons-2017.0322.0931.jar')
     compile files('libs/volley-1.0.19.jar')
     compile files('libs/netty-all-4.0.24.Final.jar')
+    compile files('libs/mpush-client-java-0.0.6.jar')
 }

@@ -1,29 +1,44 @@
 package com.lqr.wechat.ui.activity;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ViewPager;
+import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.lqr.wechat.R;
 import com.lqr.wechat.SessionService;
 import com.lqr.wechat.app.AppConst;
 import com.lqr.wechat.constant.Constants;
 import com.lqr.wechat.manager.BroadcastManager;
+import com.lqr.wechat.mpush.base.BuildConfig;
+import com.lqr.wechat.mpush.base.MPush;
+import com.lqr.wechat.mpush.base.MyLog;
+import com.lqr.wechat.mpush.base.Notifications;
 import com.lqr.wechat.netty.service.Session;
 import com.lqr.wechat.ui.adapter.CommonFragmentPagerAdapter;
 import com.lqr.wechat.ui.base.BaseActivity;
@@ -33,13 +48,14 @@ import com.lqr.wechat.ui.presenter.MainAtPresenter;
 import com.lqr.wechat.ui.view.IMainAtView;
 import com.lqr.wechat.util.PopupWindowUtils;
 import com.lqr.wechat.util.UIUtils;
+import com.mpush.client.ClientConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
 
-public class MainActivity extends BaseActivity<IMainAtView, MainAtPresenter> implements ViewPager.OnPageChangeListener, IMainAtView {
+public class MainActivity extends BaseActivity<IMainAtView, MainAtPresenter> implements ViewPager.OnPageChangeListener, IMainAtView, ActivityCompat.OnRequestPermissionsResultCallback {
 
     private List<BaseFragment> mFragmentList = new ArrayList<>(4);
 
@@ -371,5 +387,112 @@ public class MainActivity extends BaseActivity<IMainAtView, MainAtPresenter> imp
 
 //        Intent intentOne = new Intent(this, Session.class);
 //        startService(intentOne);
+
+        Notifications.I.init(this.getApplicationContext());
+        Notifications.I.setSmallIcon(R.mipmap.ic_launcher);
+        Notifications.I.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+        SharedPreferences sp = this.getSharedPreferences("mpush.cfg", Context.MODE_PRIVATE);
+        String alloc = sp.getString("allotServer", null);
+        requestReadPhonePermission();
+
+        bindUser();
+        startPush();
+    }
+
+    /**
+     * 执行权限
+     */
+    private void requestReadPhonePermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_PHONE_STATE)) {
+            //在这里面处理需要权限的代码
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+        }
+    }
+
+    /**
+     * 绑定用户
+     *
+     */
+    public void bindUser() {
+        String userId = "userId-0";
+        if (!TextUtils.isEmpty(userId)) {
+            MPush.I.bindAccount(userId, "mpush:" + (int) (Math.random() * 10));
+        }
+    }
+
+    /**
+     * 连接mpush
+     *
+     */
+    public void startPush() {
+        String allocServer = "http://192.168.1.100:9999";
+
+        if (TextUtils.isEmpty(allocServer)) {
+            Toast.makeText(this, "请填写正确的alloc地址", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!allocServer.startsWith("http://")) {
+            allocServer = "http://" + allocServer;
+        }
+
+        String userId = "userId-0";
+
+        initPush(allocServer, userId);
+
+        MPush.I.checkInit(this.getApplication()).startPush();
+        Toast.makeText(this, "start push", Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * 初始化服务
+     *
+     * @param allocServer
+     * @param userId
+     */
+    private void initPush(String allocServer, String userId) {
+        //公钥有服务端提供和私钥对应
+        String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCghPCWCobG8nTD24juwSVataW7iViRxcTkey/B792VZEhuHjQvA3cAJgx2Lv8GnX8NIoShZtoCg3Cx6ecs+VEPD2fBcg2L4JK7xldGpOJ3ONEAyVsLOttXZtNXvyDZRijiErQALMTorcgi79M5uVX9/jMv2Ggb2XAeZhlLD28fHwIDAQAB";
+
+        ClientConfig cc = ClientConfig.build()
+                .setPublicKey(publicKey)
+                .setAllotServer(allocServer)
+                .setDeviceId(getDeviceId())
+                .setClientVersion(BuildConfig.VERSION_NAME)
+                .setLogger(new MyLog(this, (EditText) findViewById(R.id.log)))
+                .setLogEnabled(BuildConfig.DEBUG)
+                .setEnableHttpProxy(true)
+                .setUserId(userId);
+        MPush.I.checkInit(getApplicationContext()).setClientConfig(cc);
+    }
+
+    /**
+     * 设备id
+     *
+     * @return
+     */
+    private String getDeviceId() {
+        TelephonyManager tm = (TelephonyManager) this.getSystemService(Activity.TELEPHONY_SERVICE);
+        String deviceId = tm.getDeviceId();
+        if (TextUtils.isEmpty(deviceId)) {
+            String time = Long.toString((System.currentTimeMillis() / (1000 * 60 * 60)));
+            deviceId = time + time;
+        }
+        return deviceId;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 1:
+                if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    //TODO
+                }
+                break;
+
+            default:
+                break;
+        }
     }
 }
